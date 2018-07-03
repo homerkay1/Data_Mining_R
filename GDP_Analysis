@@ -1,0 +1,53 @@
+### Q1
+attach(investment_gdp_data)
+LIN_REG<-lm(gross_private_domestic_investment~gdp)
+LIN_REG
+INV <- gross_private_domestic_investment*1000
+GDP <- gdp*1000
+### part B
+LIN_REG2 <- lm(INV~GDP)
+LIN_REG2
+### part C
+Z_DATA <- data.frame(scale(investment_gdp_data))
+summary(Z_DATA)
+library(psych)
+describe(Z_DATA)
+### Confirmed mean = 0, SD = 1
+## Part D
+LIN_REG3 <- lm(gross_private_domestic_investment~gdp, data = Z_DATA)
+LIN_REG3
+summary(LIN_REG3)
+
+
+####### Question 2 ### part A and B
+attach(occupational_prestige_data)
+summary(occupational_prestige_data)
+LIN_REG2.1 <- lm(prestige~education+income+percentage_of_women+professional)
+summary(LIN_REG2.1)
+### C
+### IF DATA HAS BINARY MUST CREATE DATASET AND THEN DO Z_DATA SCALE WITH NEW DATASET
+DATASET2 <- data.frame(prestige, education, income, percentage_of_women)
+Z_DATA2 <- data.frame(scale(DATASET2))
+LIN_REG2.2 <- lm(prestige~education+income+percentage_of_women, data = Z_DATA2)
+summary(LIN_REG2.2)
+#### E
+Z_DATA3 <- data.frame(Z_DATA2, professional)
+LIN_REG2.3 <- lm(prestige~education+income+percentage_of_women+professional, data = Z_DATA3)
+summary(LIN_REG2.3)
+
+#### Question 3
+
+attach(airfares_data)
+NUM_PREDICTORS <- data.frame(COUPON, NEW, HI, S_INCOME, E_INCOME, S_POP, E_POP, DISTANCE, PAX, FARE)
+cor(NUM_PREDICTORS)
+### B
+LIN_REG3.1 <- lm(formula = FARE ~ COUPON + NEW + VACATION + SW + HI + S_INCOME + 
+     E_INCOME + S_POP + E_POP + SLOT + GATE + DISTANCE + PAX)
+library(leaps)
+#### excluding S-CODE, S_CITY, E_CODE, E_CITY
+REG_SUBS <- regsubsets(FARE~COUPON+NEW+VACATION+SW+HI+S_INCOME+E_INCOME+S_POP+E_POP+SLOT+GATE+DISTANCE+PAX, data=airfares_data, nvmax = 13)
+SOR <- summary(REG_SUBS)
+SOR$adjr2
+### Best 4 Var. Model
+BEST4<- lm(formula = FARE ~ VACATION + SW + HI + DISTANCE)
+summary(BEST4)
