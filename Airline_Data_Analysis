@@ -1,0 +1,75 @@
+## Airline Data Analysis
+##### Part 1 ######
+attach(Airline_Cost_Data_1)
+summary(Airline_Cost_Data_1)
+library(psych)
+TABLE_DES<- describe(Airline_Cost_Data_1)
+### Linear Regression Model 1 - All Variables
+REGMODEL1 <- lm(TOC~LOF+SOP+DFT+PS+RTPAM+TMLF+AC+TA+ISF+AA)
+summary(REGMODEL1)
+## Issues with Multicollinearity
+## Check Correlation Matrix
+REDUCED <- Airline_Cost_Data_1[,3:13]
+cor(REDUCED)
+## Reduced Full Model
+RED_REGMODEL1 <-lm(TOC~LOF+SOP+DFT+PS+RTPAM+TMLF+AC+TA+ISF)
+RED_REGMODEL1
+summary(RED_REGMODEL1)
+## Reducing again due to insignificant variables
+RED_REGMODEL2 <-lm(TOC~RTPAM+TMLF+AC+TA+ISF)
+summary(RED_REGMODEL2)
+## Predictions
+PREDICION_RED_RM2 <- predict(RED_REGMODEL2)
+RESIDUALS_RM2 <- TOC - PREDICION_RED_RM2
+RESIDUALS_RM2
+
+##PLOTS to check if Polynomial Regression is Suitable.  None appear to be.  
+plot(RTPAM,TOC)
+plot(TMLF,TOC)
+plot(AC,TOC)
+plot(TA,TOC)
+plot(ISF,TOC)
+
+## Beta Regression
+DATASET1 <- data.frame(TOC,RTPAM,TMLF,AC,TA,ISF)
+Z_DATA1 <- data.frame(scale(DATASET1))
+describe(Z_DATA1)
+## Mean = 0, SD = 1
+Z_REGMODEL2 <- lm(TOC~RTPAM+TMLF+AC+TA+ISF, data=Z_DATA1)
+summary(Z_REGMODEL2)
+
+
+######### PART 2 ##########
+## Define New Variable #### 1 = High OC, 0 = Low OC
+TOC_NEW <- ifelse(TOC>110,1,0)
+### Logistic Regression
+
+LOGITMODEL <- glm(TOC_NEW~RTPAM+TMLF+AC+TA+ISF, family=binomial())
+summary(LOGITMODEL)
+library(DiscriMiner)
+logLik(LOGITMODEL)
+predict(LOGITMODEL)
+LOGITS <- data.frame(predict(LOGITMODEL))
+ODDS <- exp(LOGITS)
+PROBABILITIES <- ODDS/(ODDS+1)
+describe(PROBABILITIES)
+### INF = Probability of 1
+### 0 = Proability of 0
+PREDICTION_LOG_REG <- ifelse(ODDS == 0,0,1)
+PREDICTION_LOG_REG
+data.frame(PREDICTION_LOG_REG)
+COMPARISON <- data.frame (TOC_NEW,PREDICTION_LOG_REG)
+TABLE <- table(COMPARISON)
+TABLE
+
+#### Linear Discriminant Analysis (LDA)
+
+LDA_MODEL <- linDA((Airline_Cost_Data_1)[,8:12],TOC_NEW)
+LDA_MODEL
+LDA_MODEL$functionsL
+LDA_MODEL$scores
+LDA_MODEL$classification
+PREDICTION_LDA <-data.frame(LDA_MODEL$classification)
+COMPARISON_2 <- data.frame(TOC_NEW,PREDICTION_LDA)
+TABLE_2 <- table(COMPARISON_2)
+TABLE_2
