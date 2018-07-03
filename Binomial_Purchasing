@@ -1,0 +1,56 @@
+
+attach(purchase_data)
+### To do LPM, express in scaled values
+### i.e. if income is 17,000 (e^17,000 is huge)
+### Express is in 17.00 or so on.  
+library(psych)
+describe(purchase_data)
+PURCHASE <- ifelse(purchase=="yes",1,0)
+#try linear regression
+unloadNamespace(income)
+LINEAR_REG <- lm(PURCHASE~income+age+zip)
+summary(LINEAR_REG)
+predict(LINEAR_REG)
+### GIVES NEGATIVE VALUES>  CAN"T HAPPEN DUDE cause it's a probability.  
+
+##Logistic Regression ### Binomial synonymouse with binary
+## Maximum Liklihood Method - R^2 for Logistic Reg.
+LOGITMODEL <- glm(PURCHASE~income+age+zip, family=binomial())
+summary(LOGITMODEL)
+## Logic Like
+library(DiscriMiner)
+logLik(LOGITMODEL)
+predict(LOGITMODEL) ### Get's you all the LOGIT's
+## ln(Odds of Purchase) = -20+.09112*INCOME + 0.1267*AGE + 2.5843*ZIP
+LOGITS<-data.frame(predict(LOGITMODEL))
+ODDS <- exp(LOGITS)
+PROBABILITIES <- ODDS/(ODDS+1)
+colnames(PROBABILITIES)[1] <- "PRB" ## RENAME COLUMNS
+
+describe(PROBABILITIES)
+describe(ODDS)
+#### CHEATING METHOD BELOW, does same thing as code above
+SHORT_CUT_PROBABILITIES <- data.frame(fitted(LOGITMODEL))
+SHORT_CUT_PROBABILITIES
+
+#### How well did our model perform?
+#### Confusion Matrix
+PREDICTIONS <- ifelse(PROBABILITIES >.50,"PURCHASE","NO PURCHASE")
+data.frame(PREDICTIONS)
+COMPARISON <- data.frame(purchase,PREDICTIONS)
+TABLE<- table(COMPARISON)
+#Error Rate = 7/36, 81% Accurate
+# N = 36 observations
+
+##### LINEAR DISCRIMINANT ANALYSIS (LDA) alternative model #####
+#### Discriminates between two options (Purchase, No Purchase)
+#### Lots of application in Accounting.  Ex. which comapnies will default?
+library(DiscriMiner) ### LDA Requires Categorical Variables
+LDA_MODEL <- linDA((purchase_data)[,2:4],purchase)
+####Outputs 2 linear regression models. 
+#### Compares scores, higher WINS
+LDA_MODEL
+summary(LDA_MODEL)
+LDA_MODEL$functions
+LDA_MODEL$scores
+LDA_MODEL$classification
