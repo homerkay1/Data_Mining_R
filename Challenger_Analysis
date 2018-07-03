@@ -1,0 +1,33 @@
+#### CHALLENGER DATA PROBLEM ####
+attach(challenger_data)
+names(challenger_data)
+## DIM gives dimensions of data sets 23 items, 3 variables
+dim(challenger_data)
+str(challenger_data)
+summary(challenger_data)
+########## Exploratory Data Analysis ############
+library(psych)
+describe(challenger_data)
+cor(oring_failures,temp)
+###### Simple Linear Regression ######
+## lm = linear model (oring failure~temp) oring failures as a function of temperature
+REG_MODEL <- lm(oring_failures~temp)
+###RESULTS### Same equation as in EXCEL Example
+summary(REG_MODEL)
+####ANOVA - analysis of variance
+anova(REG_MODEL)
+#abline() fits a straight line to the regression model.  
+##plot original data first, then abline(REGRESSION MODEL)
+plot(temp,oring_failures)
+abline(REG_MODEL)
+
+names(REG_MODEL)
+
+FITTED_VALUES <- fitted(REG_MODEL)
+FITTED_VALUES
+
+RESIDUAL_VALUES <- residuals(REG_MODEL)
+RESIDUAL_VALUES
+### CREATE DATA FRAME ### 
+## Compare data results are exactly the same as in excel results
+COMPARE_DATA <- data.frame(oring_failures, FITTED_VALUES, RESIDUAL_VALUES)
