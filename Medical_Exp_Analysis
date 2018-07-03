@@ -1,0 +1,86 @@
+attach(medexpense_data)
+options(scipen=999)
+names(medexpense_data)
+dim(medexpense_data)
+str(medexpense_data)
+##### Issue 1: Dummy Variables #####
+####usually female/male, freshman, sophomore, junior, senior.  
+REGMODEL1 <- lm(medical_expenses~age+bmi+children+smoker+gender)
+summary(REGMODEL1)
+
+###### Issue 2: Defining New Variables
+#### Filter BMI > 30, considered obese
+OBESE <- ifelse(bmi>30,1,0)
+SMOKER <- ifelse(smoker=="yes",1,0)
+GENDER <- ifelse(gender=="male",1,0)
+REGMODEL2 <-lm(medical_expenses~age+OBESE+children+SMOKER+GENDER)
+summary(REGMODEL2)
+
+##### Issue 3: Interaction Variables
+OBESE_SMOKER <- (OBESE*SMOKER)
+### Tag On OBESE_SMOKER - Interaction Variable
+REGMODEL3 <- lm(medical_expenses~age+OBESE+children+SMOKER+GENDER+OBESE_SMOKER)
+summary(REGMODEL3)
+
+##### Issue 4: Beta Regression (Z Regression) #####
+#### Standardizes your variables, i.e. does  a Z Transform on each variable
+#### Can't do this with smoker, or gender, they are binary
+#### use scale command.
+DATASET2 <- data.frame(medical_expenses, age, AGE2, bmi, children, SMOKER, GENDER, OBESE, OBESE_SMOKER)
+Z_DATA <- data.frame(scale(DATASET2))
+library(psych)
+describe(Z_DATA)
+#### mean = 0, SD = 1, Z-Transform!  It's fucking genius.
+
+REGMODEL4 <- lm(medical_expenses~age+bmi, data=Z_DATA)
+summary(REGMODEL4)
+
+##### CLASS 5, Issue 5, Polynomial Regressions
+AGE2<-(age*age)
+plot(AGE2, medical_expenses)
+cor(age, medical_expenses)
+cor(AGE2,medical_expenses)
+
+REGMODEL5<-lm(medical_expenses~age+AGE2+OBESE+children+SMOKER+gender+OBESE_SMOKER)
+summary(REGMODEL5)
+### 1119+53*AGE+2.7*AGE^2+23*OBESE+....
+###Adj R^2 = .87, P-Value on Age^2 is significant.  
+###Therefore it is a good inclusion.  
+#### Age^2 term is an outcome of a derivative.
+### 53+5.52*AGE where 5.52 = 2.76*2 (I.E. the Derivative)
+
+### ISSUE 6: MODEL SELECTION? Use REGRESSION SUBSETS.
+library(leaps)
+REG_SUBSETS<-regsubsets(medical_expenses~age+AGE2+bmi+children+SMOKER+
+                          GENDER+OBESE_SMOKER+OBESE,
+                        data=DATASET2,nvmax = 8)
+summary(REG_SUBSETS)
+REG_SUMMARY<-summary(REG_SUBSETS)
+names(REG_SUMMARY)
+REG_SUMMARY$adjr2
+plot(REG_SUMMARY$adjr2)
+###Chose 3 Variables Version b/c its trivial to go any further based on the results.
+
+BEST_3_VARIABLE_MODEL <- lm(medical_expenses~age+SMOKER+OBESE_SMOKER)
+summary(BEST_3_VARIABLE_MODEL) ## OUT OF 255 options, this is the best.  
+
+###### ISSUE 7: MULTI-COLLINEARITY ######
+attach(shoe_sizes_data)
+REG_MODEL7<-lm(weight~right_shoe_size)
+summary(REG_MODEL7)
+### 79.27+10.03*right_shoe_size, Adjr2 = .73
+REG_MODEL7.1<-lm(weight~left_shoe_size)
+summary(REG_MODEL7.1)
+### 83 + 9.62*left_shoe_size, Adjr2 = .71
+REG_MODEL7.2<- lm(weight~right_shoe_size+left_shoe_size)
+summary(REG_MODEL7.2)
+### 79+14.26*Right-4.1*left, Adjr2 = .68
+###- sign and P Values are insignificant, they make no sense.
+#### Like trouble-some twins.  Datasets are basically copies of eachother.  
+### If regression results don't make sense, it is highly likely Multi-Collinearity.  
+cor(right_shoe_size, left_shoe_size)
+### Tests for Multi-Collinearity.  
+
+#####  ISSUE 8: GENERAL VALIDATION OF LINEAR MODEL ASSUMPTIONS ####
+library(gvlma) # gvlma = General validation of linear model assumptions.  
+gvlma(REGMODEL5)
