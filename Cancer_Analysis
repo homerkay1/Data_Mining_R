@@ -1,0 +1,33 @@
+attach(cancer_data)
+dim(cancer_data)
+str(cancer_data)
+####
+library(psych)
+describe(cancer_data)
+
+TABLE<- table(diagnosis)
+### benign - 357, malignant - 212.  
+## Balance the data set.  I.E. if malignant is only 1% in real world.
+###We need the data to be 50/50 though to make good predictions using this method.  
+
+###Structuring the data
+### [-1] gets rid of 1st column (diagnosis) b/c you can't scale words.
+SCALED_DATA<- scale(cancer_data[-1])
+### mean = 0, and SD = 1.  TRUE?  see below.
+describe(SCALED_DATA)
+### Create data sets. ### Data Structuring 
+TRAINING_SET<-data.frame(SCALED_DATA[1:469,])
+TEST_SET<-data.frame(SCALED_DATA[470:569,])
+Y1<-cancer_data[1:469,1]
+Y2<-cancer_data[470:569,1]
+### Use runif command to randomize if not already.  
+### in this case it is randomized.  
+library(class)
+PREDICTIONS<-knn(train=TRAINING_SET,test=TEST_SET,cl=Y1,k=21)
+summary(PREDICTIONS)
+COMPARISON_DATA<-data.frame(Y2,PREDICTIONS)
+CONFUSION_MATRIX<-table(Y2,PREDICTIONS)
+### Paper notes
+### Shortcut confusion matrix
+library(gmodels)
+CONFUSION_MATRIX2<-CrossTable(x=Y2,y=PREDICTIONS)
